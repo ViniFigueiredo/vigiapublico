@@ -1,0 +1,31 @@
+.container {
+  @apply border border-slate-200 rounded-lg overflow-hidden mb-4;
+}
+
+.button {
+  @apply w-full flex items-center justify-between p-4 bg-white hover:bg-slate-50 transition-colors;
+}
+
+.header {
+  @apply flex items-center gap-3;
+}
+
+.iconWrapper {
+  @apply p-2 bg-navy-50 rounded-lg text-navy-900;
+}
+
+.title {
+  @apply font-semibold text-navy-900;
+}
+
+.chevron {
+  @apply w-5 h-5 text-slate-400;
+}
+
+.contentWrapper {
+  @apply overflow-hidden;
+}
+
+.content {
+  @apply p-4 bg-slate-50 border-t border-slate-200;
+}

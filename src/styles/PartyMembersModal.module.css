@@ -1,0 +1,146 @@
+.overlay {
+  position: fixed;
+  inset: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  z-index: 50;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+}
+
+.modal {
+  background-color: white;
+  border-radius: 0.75rem;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+  width: 100%;
+  max-width: 42rem;
+  max-height: 80vh;
+  overflow: hidden;
+}
+
+.header {
+  padding: 1.5rem;
+  border-bottom: 1px solid #E2E8F0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.partyInfo {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.partyLogo {
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-weight: bold;
+}
+
+.partyDetails h2 {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #1B2A4A;
+}
+
+.partyDetails p {
+  font-size: 0.875rem;
+  color: #64748B;
+}
+
+.closeButton {
+  padding: 0.5rem;
+  border-radius: 50%;
+  transition: background-color 0.2s;
+}
+
+.closeButton:hover {
+  background-color: #F1F5F9;
+}
+
+.closeIcon {
+  width: 1.5rem;
+  height: 1.5rem;
+  color: #94A3B8;
+}
+
+.content {
+  padding: 1.5rem;
+  overflow-y: auto;
+  max-height: 60vh;
+}
+
+.memberList {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.member {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem;
+  border-radius: 0.5rem;
+  border: 1px solid #F1F5F9;
+  transition: background-color 0.2s;
+  cursor: pointer;
+}
+
+.member:hover {
+  background-color: #F8FAFC;
+}
+
+.memberPhoto {
+  width: 3rem;
+  height: 3rem;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.memberInfo {
+  flex: 1;
+  min-width: 0;
+}
+
+.memberName {
+  font-weight: 500;
+  color: #1B2A4A;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.memberRole {
+  font-size: 0.875rem;
+  color: #64748B;
+}
+
+.memberState {
+  font-size: 0.75rem;
+  font-weight: 500;
+  background-color: #F1F5F9;
+  padding: 0.25rem 0.5rem;
+  border-radius: 0.25rem;
+  color: #475569;
+}
+
+.loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem 0;
+}
+
+.empty {
+  text-align: center;
+  color: #64748B;
+  padding: 2rem 0;
+}

@@ -1,0 +1,170 @@
+.container {
+  min-height: 100vh;
+  background-color: #F8FAFC;
+  padding-bottom: 3rem;
+}
+
+.main {
+  max-width: 80rem;
+  margin-left: auto;
+  margin-right: auto;
+  padding-left: 1rem;
+  padding-right: 1rem;
+  padding-top: 2rem;
+}
+
+@media (min-width: 640px) {
+  .main {
+    padding-left: 1.5rem;
+    padding-right: 1.5rem;
+  }
+}
+
+@media (min-width: 1024px) {
+  .main {
+    padding-left: 2rem;
+    padding-right: 2rem;
+  }
+}
+
+.hero {
+  text-align: center;
+  margin-bottom: 2.5rem;
+}
+
+.heroTitle {
+  font-size: 1.875rem;
+  font-weight: 700;
+  color: #1B2A4A;
+  letter-spacing: -0.025em;
+  margin-bottom: 0.5rem;
+}
+
+@media (min-width: 640px) {
+  .heroTitle {
+    font-size: 2.25rem;
+  }
+}
+
+.heroSubtitle {
+  font-size: 1rem;
+  color: #64748B;
+  max-width: 42rem;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+@media (min-width: 640px) {
+  .heroSubtitle {
+    font-size: 1.125rem;
+  }
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1.5rem;
+}
+
+@media (min-width: 1024px) {
+  .grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+.tableSection {
+  grid-column: span 1;
+}
+
+@media (min-width: 1024px) {
+  .tableSection {
+    grid-column: span 2;
+  }
+}
+
+.sidebar {
+  grid-column: span 1;
+}
+
+@media (min-width: 1024px) {
+  .sidebar {
+    grid-column: span 1;
+  }
+}
+
+.filters {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 1.5rem;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.filterButton {
+  padding: 0.5rem 1rem;
+  border: 1px solid #E2E8F0;
+  background: white;
+  border-radius: 0.5rem;
+  font-size: 0.875rem;
+  color: #64748B;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.filterButton:hover {
+  background: #F1F5F9;
+  color: #1B2A4A;
+}
+
+.filterActive {
+  background: #1B2A4A;
+  color: white;
+  border-color: #1B2A4A;
+}
+
+.filterActive:hover {
+  background: #2D3A5A;
+  color: white;
+}
+
+.noResults {
+  grid-column: 1 / -1;
+  text-align: center;
+  padding: 3rem;
+  color: #64748B;
+}
+
+.deputiesFilters {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.stateSelect,
+.sortSelect,
+.legislatureSelect {
+  padding: 0.5rem 1rem;
+  border: 1px solid #E2E8F0;
+  background: white;
+  border-radius: 0.5rem;
+  font-size: 0.875rem;
+  color: #1B2A4A;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.stateSelect:hover,
+.sortSelect:hover,
+.legislatureSelect:hover {
+  border-color: #1B2A4A;
+}
+
+.stateSelect:focus,
+.sortSelect:focus,
+.legislatureSelect:focus {
+  outline: none;
+  border-color: #1B2A4A;
+  box-shadow: 0 0 0 2px rgba(27, 42, 74, 0.1);
+}

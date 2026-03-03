@@ -1,0 +1,149 @@
+.container {
+  position: relative;
+  width: 100%;
+  max-width: 42rem;
+  margin-left: auto;
+  margin-right: auto;
+  margin-bottom: 2rem;
+}
+
+.inputWrapper {
+  position: relative;
+}
+
+.searchIcon {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  display: flex;
+  align-items: center;
+  padding-left: 1rem;
+  pointer-events: none;
+}
+
+.icon {
+  width: 1.25rem;
+  height: 1.25rem;
+  color: #94A3B8;
+}
+
+.input {
+  display: block;
+  width: 100%;
+  padding: 1rem;
+  padding-left: 2.75rem;
+  padding-right: 2.5rem;
+  background-color: white;
+  border: 1px solid #E2E8F0;
+  border-radius: 0.5rem;
+  color: #0F172A;
+  font-size: 1rem;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.input::placeholder {
+  color: #94A3B8;
+}
+
+.input:focus {
+  outline: none;
+  border-color: #1B2A4A;
+  box-shadow: 0 0 0 3px rgba(27, 42, 74, 0.1);
+}
+
+.clearButton {
+  position: absolute;
+  right: 0.75rem;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0.25rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.clearIcon {
+  width: 1rem;
+  height: 1rem;
+  color: #94A3B8;
+}
+
+.results {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  background: white;
+  border: 1px solid #E2E8F0;
+  border-radius: 0.5rem;
+  margin-top: 0.5rem;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  max-height: 400px;
+  overflow-y: auto;
+  z-index: 50;
+}
+
+.loading,
+.noResults {
+  padding: 1rem;
+  text-align: center;
+  color: #64748B;
+}
+
+.resultItem {
+  display: flex;
+  align-items: center;
+  padding: 0.75rem 1rem;
+  cursor: pointer;
+  transition: background-color 0.15s;
+  border-bottom: 1px solid #F1F5F9;
+}
+
+.resultItem:last-child {
+  border-bottom: none;
+}
+
+.resultItem:hover {
+  background-color: #F8FAFC;
+}
+
+.photo {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  object-fit: cover;
+  margin-right: 1rem;
+  background-color: #E2E8F0;
+}
+
+.info {
+  flex: 1;
+}
+
+.name {
+  font-weight: 500;
+  color: #0F172A;
+  font-size: 0.95rem;
+}
+
+.details {
+  font-size: 0.85rem;
+  color: #64748B;
+  margin-top: 0.25rem;
+}
+
+.role {
+  color: #1B2A4A;
+}
+
+.party {
+  color: #64748B;
+}
+
+.state {
+  color: #64748B;
+}

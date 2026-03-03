@@ -1,0 +1,31 @@
+.container {
+  @apply bg-white rounded-lg border border-slate-200 p-4;
+}
+
+.header {
+  @apply flex flex-wrap items-center gap-2 mb-3;
+}
+
+.title {
+  @apply text-sm font-semibold text-slate-700 mr-4;
+}
+
+.accumulatedBtnActive {
+  @apply px-4 py-2 rounded-full text-sm font-medium transition-colors bg-amber-500 text-white;
+}
+
+.accumulatedBtnInactive {
+  @apply px-4 py-2 rounded-full text-sm font-medium transition-colors bg-slate-100 text-slate-600 hover:bg-slate-200;
+}
+
+.yearsWrapper {
+  @apply flex flex-wrap gap-2;
+}
+
+.yearBtnActive {
+  @apply px-4 py-2 rounded-full text-sm font-medium transition-colors bg-navy-900 text-white;
+}
+
+.yearBtnInactive {
+  @apply px-4 py-2 rounded-full text-sm font-medium transition-colors bg-slate-100 text-slate-600 hover:bg-slate-200;
+}
