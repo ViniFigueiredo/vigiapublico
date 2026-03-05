@@ -1,1 +1,10 @@
 node_modules
+api
+dist
+FUNCIONALIDADES_REACT_TS.md
+.gitignore
+.eslintrc.cjs
+fundão.session.sql
+eslint.config.js
+.vscode
+.vite

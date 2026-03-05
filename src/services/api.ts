@@ -1,6 +1,3 @@
-
-
-
 export interface Party {
   id: string;
   name: string;
@@ -17,14 +14,6 @@ interface ApiParty {
   sigla: string;
   nome: string;
   uri: string;
-}
-
-interface ApiPartyDetail {
-  id: number;
-  sigla: string;
-  nome: string;
-  uri: string;
-  urlLogo: string;
 }
 
 const FETCH_OPTIONS: RequestInit = {
@@ -53,27 +42,39 @@ async function fetchWithRetry(url: string, retries = 3, options?: { signal?: Abo
   throw lastError;
 }
 
-export async function fetchParties(legislature = 57, options?: { signal?: AbortSignal }): Promise<Party[]> {
-  const url = legislature === 57
-    ? `/api/api/v2/partidos?ordem=ASC&ordenarPor=sigla&itens=100`
-    : `/api/api/v2/partidos?idLegislatura=${legislature}&itens=100`;
+export async function fetchParties(
+  legislature = 57,
+  options?: { signal?: AbortSignal }
+): Promise<Party[]> {
+  const url =
+    legislature === 57
+      ? `/api/api/v2/partidos?ordem=ASC&ordenarPor=sigla&itens=100`
+      : `/api/api/v2/partidos?idLegislatura=${legislature}&itens=100`;
 
   const response = await fetchWithRetry(url, 3, options);
   const data = await response.json();
 
   if (!data.dados) return [];
 
-  return data.dados.map((party: ApiParty) => ({
-    id: String(party.id),
-    abbr: party.sigla,
-    name: party.nome,
-    spent: 0,
-    variation: 0,
-    members: 0,
-    // Logo remains undefined as fetching it for each party is too many requests
-    // and causes timeouts or rate limiting issues.
-    logo: undefined,
-  }));
+  const parties = await Promise.all(
+    data.dados.map(async (party: ApiParty) => {
+      const detailsResponse = await fetchWithRetry(
+        `/api/api/v2/partidos/${party.id}`,
+        3,
+        options
+      );
+      const detailsData = await detailsResponse.json();
+
+      return {
+        id: String(party.id),
+        abbr: party.sigla,
+        name: party.nome,
+        logo: detailsData?.dados?.urlLogo || null,
+      };
+    })
+  );
+
+  return parties;
 }
 
 export interface PoliticianMember {
@@ -221,7 +222,6 @@ export async function fetchAllDeputies(legislature?: number, options?: { signal?
         data.links?.find((l) => l.rel === 'next');
       nextUrl = nextLink?.href ?? null;
       
-      // Prevent infinite loops or excessive paging if API misbehaves
       if (allDeputies.length > 2000) break;
     } catch (error) {
       if ((error as Error).name === 'AbortError') throw error;
@@ -321,10 +321,8 @@ export async function fetchDeputyById(id: string): Promise<DeputyDetail | null> 
     const data = await response.json();
     if (data.dados) return mapDeputyDetail(data.dados);
   } catch {
-    // endpoint detalhado bloqueado (CORS/404) — tenta fallback
   }
 
-  // Fallback: endpoint de listagem com filtro de ID (sempre retorna CORS corretos)
   try {
     const response = await fetchWithRetry(
       `/api/api/v2/deputados?id=${id}&itens=1`
@@ -508,7 +506,6 @@ export async function fetchDeputyBiography(deputyId: string): Promise<BiographyI
       }
     });
     
-    // Mesclar itens com o mesmo título (ex: vários <p> sob um único <strong>)
     const mergedItems = items.reduce((acc: BiographyItem[], current) => {
       const existing = acc.find(item => item.title === current.title);
       if (existing) {

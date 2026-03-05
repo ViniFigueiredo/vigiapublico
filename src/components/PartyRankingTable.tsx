@@ -46,13 +46,12 @@ export function PartyRankingTable({ data, onViewPartyMembers, onToggleShowAll, s
                 </td>
                 <td className={styles.cellParty}>
                   <div className={styles.partyRow} onClick={() => onViewPartyMembers?.(party)}>
-                    {party.logo ? (
-                      <img src={party.logo} alt={party.abbr} className={styles.partyLogo} />
-                    ) : (
-                      <span className={styles.partyInitial} style={{ backgroundColor: party.color }}>
-                        {party.abbr.charAt(0)}
-                      </span>
-                    )}
+                    {party.logo && (
+                        <img
+                          src={party.logo}
+                          className={styles.partyLogo}
+                        />
+                      )}
                     <div>
                       <span className={styles.partyName}>{party.abbr}</span>
                       <span className={styles.partyFullName}>{party.name}</span>

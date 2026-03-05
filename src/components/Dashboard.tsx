@@ -7,7 +7,7 @@ import {
 import { SearchBar } from './SearchBar';
 import { SummaryCards } from './SummaryCards';
 import { PartyRankingTable } from './PartyRankingTable';
-import { DeputyRankingTable } from './DeputyRankingTable';
+import { DeputyTable } from './DeputyRankingTable';
 import { Footer } from './Footer';
 import { LoadingPage } from '../utils/LoadingSpinner';
 import { PartyMembersModal } from './PartyMembersModal';
@@ -244,7 +244,7 @@ export function Dashboard({}: DashboardProps) {
             <div className={styles.noResults}>Carregando deputados...</div>
           ) : (
             <div className={styles.tableSection}>
-              <DeputyRankingTable
+              <DeputyTable
                 data={filteredAndSortedDeputies}
                 onDeputyClick={id => navigate(`/politico/${id}`)}
               />

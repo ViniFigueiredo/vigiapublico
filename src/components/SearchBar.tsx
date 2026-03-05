@@ -1,6 +1,7 @@
 import { Search, X } from 'lucide-react';
 import { useState, useEffect, useRef } from 'react';
 import { fetchDeputiesByName, Deputy } from '../services/api';
+import { useNavigate } from "react-router-dom";
 import styles from '../styles/SearchBar.module.css';
 
 export function SearchBar() {
@@ -9,6 +10,7 @@ export function SearchBar() {
   const [loading, setLoading] = useState(false);
   const [showResults, setShowResults] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
+  const navigate = useNavigate();
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -51,7 +53,7 @@ export function SearchBar() {
 
   const handleDeputyClick = (deputyId: string) => {
     setShowResults(false);
-    window.location.href = `/politico/${deputyId}`;
+    navigate(`/politico/${deputyId}`);
   };
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
@@ -69,7 +71,7 @@ export function SearchBar() {
         <input
           type="text"
           className={styles.input}
-          placeholder="Buscar político, partido ou despesa..."
+          placeholder="Buscar deputado"
           value={term}
           onChange={(e) => {
             setTerm(e.target.value);

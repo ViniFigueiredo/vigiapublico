@@ -146,7 +146,6 @@ export function PoliticianProfile() {
                 </div>
 
                 <div className={styles.infoItem}>
-                  <PartyPopper className={styles.infoIcon} />
                   <div>
                     <p className={styles.infoLabel}>Partido</p>
                     <p className={styles.infoValue}>{deputy.party}</p>
@@ -163,7 +162,6 @@ export function PoliticianProfile() {
 
                 {deputy.email && (
                   <div className={styles.infoItem}>
-                    <PartyPopper className={styles.infoIcon} />
                     <div>
                       <p className={styles.infoLabel}>Email</p>
                       <p className={styles.infoValue}>{deputy.email}</p>
@@ -173,7 +171,6 @@ export function PoliticianProfile() {
 
                 {deputy.phone && (
                   <div className={styles.infoItem}>
-                    <PartyPopper className={styles.infoIcon} />
                     <div>
                       <p className={styles.infoLabel}>Telefone</p>
                       <p className={styles.infoValue}>{deputy.phone}</p>
@@ -183,9 +180,8 @@ export function PoliticianProfile() {
 
                 {deputy.office && (
                   <div className={styles.infoItem}>
-                    <PartyPopper className={styles.infoIcon} />
                     <div>
-                      <p className={styles.infoLabel}>Gabinete</p>
+                      <p className={styles.infoLabel}></p>
                       <p className={styles.infoValue}>{deputy.office}</p>
                     </div>
                   </div>

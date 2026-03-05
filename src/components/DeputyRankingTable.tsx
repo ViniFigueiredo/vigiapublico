@@ -10,7 +10,7 @@ interface DeputyRankingTableProps {
   subtitle?: string;
 }
 
-export function DeputyRankingTable({ data, onDeputyClick, title = 'Deputados Federais', subtitle = 'Lista de todos os deputados federais do Brasil' }: DeputyRankingTableProps) {
+export function DeputyTable({ data, onDeputyClick, title = 'Deputados Federais', subtitle = 'Lista de todos os deputados federais do Brasil' }: DeputyRankingTableProps) {
   return (
     <Card noPadding className="h-full flex flex-col">
       <div className="p-6 border-b border-slate-100 flex justify-between items-center">
@@ -24,7 +24,6 @@ export function DeputyRankingTable({ data, onDeputyClick, title = 'Deputados Fed
         <table className={styles.table}>
           <thead>
             <tr className={styles.tableHeader}>
-              <th className={styles.headerCell}>#</th>
               <th className={styles.headerCellDeputy}>Deputado</th>
             </tr>
           </thead>
