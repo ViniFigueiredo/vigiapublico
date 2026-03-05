@@ -66,18 +66,6 @@
   @apply text-sm font-medium;
 }
 
-.statsBtnWrapper {
-  @apply mt-6 pt-6 border-t border-slate-100;
-}
-
-.statsBtn {
-  @apply w-full py-3 px-4 bg-navy-900 text-white rounded-lg font-medium hover:bg-navy-800 transition-colors flex items-center justify-center gap-2;
-}
-
-.statsIcon {
-  @apply w-5 h-5;
-}
-
 .socialWrapper {
   @apply mt-4 pt-6 border-t border-slate-100;
 }
@@ -152,38 +140,6 @@
 
 .listItemSubtitle {
   @apply text-sm text-slate-500;
-}
-
-.voteActions {
-  @apply text-right flex flex-col items-end gap-1;
-}
-
-.voteBadgeSim {
-  @apply px-3 py-1 rounded-full text-xs font-medium bg-green-100 text-green-700;
-}
-
-.voteBadgeNao {
-  @apply px-3 py-1 rounded-full text-xs font-medium bg-red-100 text-red-700;
-}
-
-.voteBadgeAbs {
-  @apply px-3 py-1 rounded-full text-xs font-medium bg-yellow-100 text-yellow-700;
-}
-
-.voteBadgeDefault {
-  @apply px-3 py-1 rounded-full text-xs font-medium bg-slate-100 text-slate-700;
-}
-
-.voteResultAprovado {
-  @apply text-xs px-2 py-0.5 rounded bg-green-50 text-green-600;
-}
-
-.voteResultRejeitado {
-  @apply text-xs px-2 py-0.5 rounded bg-red-50 text-red-600;
-}
-
-.voteResultDefault {
-  @apply text-xs px-2 py-0.5 rounded bg-slate-50 text-slate-500;
 }
 
 .expenseItemContent {

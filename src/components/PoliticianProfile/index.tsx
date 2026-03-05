@@ -1,44 +1,63 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { AnimatePresence } from 'framer-motion';
 import { Card } from '../ui/Card';
 import { SearchBar } from '../SearchBar';
-import { fetchDeputyById, fetchDeputyExpenses, fetchDeputyBiography, DeputyDetail, DeputyExpense, BiographyItem } from '../../services/api';
+import { fetchDeputyById, fetchDeputyExpenses, fetchDeputyBiography, fetchDeputyYears, DeputyDetail, DeputyExpense, BiographyItem } from '../../services/api';
 import { LoadingPage } from '../../utils/LoadingSpinner';
 import { 
   MapPin, Calendar, PartyPopper, Twitter, Instagram, Facebook, Youtube, 
-  DollarSign, ArrowLeft, BarChart3, BookOpen, ExternalLink
+  DollarSign, ArrowLeft, BookOpen, ExternalLink
 } from 'lucide-react';
 import { formatCurrency } from '../../utils/formatters';
 
 import { YearFilter } from './YearFilter';
 import { Drawer } from './Drawer';
-import { ElectionStatsModal } from './ElectionStatsModal';
-import { votesData } from './mockData';
 import styles from './PoliticianProfile.module.css';
 
 export function PoliticianProfile() {
   const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
-  const [selectedYear, setSelectedYear] = useState(2024);
-  const [showElectionStats, setShowElectionStats] = useState(false);
+  const [selectedYear, setSelectedYear] = useState<number | null>(null);
   const [deputy, setDeputy] = useState<DeputyDetail | null>(null);
   const [expenses, setExpenses] = useState<DeputyExpense[]>([]);
   const [biography, setBiography] = useState<BiographyItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [loadingExpenses, setLoadingExpenses] = useState(false);
   const [loadingBio, setLoadingBio] = useState(false);
-  const years = [2024, 2023, 2022, 2021, 2020];
+  const [years, setYears] = useState<number[]>([]);
 
   useEffect(() => {
     if (!id) return;
     let stale = false;
     setLoading(true);
     setDeputy(null);
-    fetchDeputyById(id)
-      .then(data => { if (!stale) setDeputy(data); })
-      .catch(() => { if (!stale) setDeputy(null); })
-      .finally(() => { if (!stale) setLoading(false); });
+
+    Promise.all([
+      fetchDeputyById(id),
+      fetchDeputyYears(Number(id))
+    ])
+    .then(([deputyData, deputyYears]) => {
+      if (stale) return;
+      setDeputy(deputyData);
+      
+      const currentYear = new Date().getFullYear();
+      const filteredYears = (deputyYears || []).filter(year => year <= currentYear);
+      const sortedYears = filteredYears.sort((a, b) => b - a);
+      
+      setYears(sortedYears);
+      if (sortedYears.length > 0) {
+        setSelectedYear(sortedYears[0]);
+      } else {
+        setYears([]);
+        setSelectedYear(null);
+      }
+    })
+    .catch((err) => { 
+      console.error('Error in Promise.all:', err);
+      if (!stale) setDeputy(null); 
+    })
+    .finally(() => { if (!stale) setLoading(false); });
+
     return () => { stale = true; };
   }, [id]);
 
@@ -54,7 +73,7 @@ export function PoliticianProfile() {
   }, [id]);
 
   useEffect(() => {
-    if (!id || !deputy) return;
+    if (!id || !deputy || !selectedYear) return;
     let stale = false;
     setLoadingExpenses(true);
     fetchDeputyExpenses(id, selectedYear)
@@ -173,16 +192,6 @@ export function PoliticianProfile() {
                 )}
               </div>
 
-              <div className={styles.statsBtnWrapper}>
-                <button
-                  onClick={() => setShowElectionStats(true)}
-                  className={styles.statsBtn}
-                >
-                  <BarChart3 className={styles.statsIcon} />
-                  Ver Estatísticas Eleitorais
-                </button>
-              </div>
-
               <div className={styles.socialWrapper}>
                 <p className={styles.socialTitle}>Redes Sociais</p>
                 <div className={styles.socialIcons}>
@@ -213,66 +222,16 @@ export function PoliticianProfile() {
 
           <div className={styles.rightColumn}>
             <div className={styles.filterContainer}>
-              <YearFilter
-                selectedYear={selectedYear}
-                onYearChange={setSelectedYear}
-                years={years}
-              />
+              {selectedYear && (
+                <YearFilter
+                  selectedYear={selectedYear}
+                  onYearChange={(y) => setSelectedYear(y)}
+                  years={years}
+                />
+              )}
             </div>
 
-            <Drawer title="Biografia" icon={<BookOpen className="w-5 h-5" />}>
-              <div className={styles.bioDrawer}>
-                {loadingBio ? (
-                  <div className={styles.loaderWrapper}>
-                    <div className={styles.loader}></div>
-                  </div>
-                ) : biography.length > 0 ? (
-                  biography.map((item, index) => (
-                    <div key={index} className={styles.bioCard}>
-                      <h4 className={styles.bioTitle}>{item.title}</h4>
-                      <div 
-                        className={styles.bioContent} 
-                        dangerouslySetInnerHTML={{ __html: item.content }}
-                      />
-                    </div>
-                  ))
-                ) : (
-                  <div className={styles.emptyState}>
-                    Nenhuma informação biográfica encontrada.
-                  </div>
-                )}
-              </div>
-            </Drawer>
 
-            <Drawer title="Votos" icon={<PartyPopper className="w-5 h-5" />} defaultOpen>
-              <div className={styles.listContainer}>
-                {votesData.map((vote) => (
-                  <div key={vote.id} className={styles.listItem}>
-                    <div className={styles.listItemContent}>
-                      <p className={styles.listItemTitle}>{vote.description}</p>
-                      <p className={styles.listItemSubtitle}>{vote.projectNumber} • {vote.date}</p>
-                    </div>
-                    <div className={styles.voteActions}>
-                      <span className={
-                        vote.type === 'Sim' ? styles.voteBadgeSim :
-                        vote.type === 'Não' ? styles.voteBadgeNao :
-                        vote.type === 'Abstenção' ? styles.voteBadgeAbs :
-                        styles.voteBadgeDefault
-                      }>
-                        {vote.type}
-                      </span>
-                      <span className={
-                        vote.result === 'Aprovado' ? styles.voteResultAprovado :
-                        vote.result === 'Rejeitado' ? styles.voteResultRejeitado :
-                        styles.voteResultDefault
-                      }>
-                        {vote.result}
-                      </span>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </Drawer>
 
             <Drawer title="Gastos" icon={<DollarSign className="w-5 h-5" />}>
               <div className={styles.listContainer}>
@@ -313,15 +272,33 @@ export function PoliticianProfile() {
                 )}
               </div>
             </Drawer>
+
+                        <Drawer title="Biografia" icon={<BookOpen className="w-5 h-5" />}>
+              <div className={styles.bioDrawer}>
+                {loadingBio ? (
+                  <div className={styles.loaderWrapper}>
+                    <div className={styles.loader}></div>
+                  </div>
+                ) : biography.length > 0 ? (
+                  biography.map((item, index) => (
+                    <div key={index} className={styles.bioCard}>
+                      <h4 className={styles.bioTitle}>{item.title}</h4>
+                      <div 
+                        className={styles.bioContent} 
+                        dangerouslySetInnerHTML={{ __html: item.content }}
+                      />
+                    </div>
+                  ))
+                ) : (
+                  <div className={styles.emptyState}>
+                    Nenhuma informação biográfica encontrada.
+                  </div>
+                )}
+              </div>
+            </Drawer>
           </div>
         </div>
       </main>
-
-      <AnimatePresence>
-        {showElectionStats && (
-          <ElectionStatsModal onClose={() => setShowElectionStats(false)} />
-        )}
-      </AnimatePresence>
     </div>
   );
 }

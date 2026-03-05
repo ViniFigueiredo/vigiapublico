@@ -14,7 +14,7 @@ interface MiniBarChartProps {
   data: Party[];
 }
 export function MiniBarChart({ data }: MiniBarChartProps) {
-  // Take top 8 for the chart
+
   const chartData = data.slice(0, 8);
   return (
     <Card className="flex flex-col h-[400px]">

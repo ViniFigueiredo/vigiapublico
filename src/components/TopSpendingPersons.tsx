@@ -2,11 +2,11 @@ import { Card } from './ui/Card';
 import styles from '../styles/TopSpendingParties.module.css';
 
 interface TopSpendingPersonsProps {
-  type: 'deputados' | 'senadores';
+  type: 'deputados';
 }
 
 export function TopSpendingPersons({ type }: TopSpendingPersonsProps) {
-  const title = type === 'deputados' ? 'Top Gastos por Deputado' : 'Top Gastos por Senador';
+  const title = 'Top Gastos por Deputado';
 
   return (
     <Card className={styles.container}>

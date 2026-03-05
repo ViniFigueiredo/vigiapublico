@@ -1,3 +1,6 @@
+
+
+
 export interface Party {
   id: string;
   name: string;
@@ -29,14 +32,18 @@ const FETCH_OPTIONS: RequestInit = {
   headers: { 'Accept': 'application/json' },
 };
 
-async function fetchWithRetry(url: string, retries = 3): Promise<Response> {
+async function fetchWithRetry(url: string, retries = 3, options?: { signal?: AbortSignal }): Promise<Response> {
   let lastError: unknown;
   for (let attempt = 1; attempt <= retries; attempt++) {
     try {
-      const response = await fetch(url, FETCH_OPTIONS);
+      const response = await fetch(url, {
+        ...FETCH_OPTIONS,
+        signal: options?.signal
+      });
       if (response.ok) return response;
       lastError = new Error(`HTTP ${response.status}`);
     } catch (error) {
+      if ((error as Error).name === 'AbortError') throw error;
       lastError = error;
     }
     if (attempt < retries) {
@@ -46,46 +53,27 @@ async function fetchWithRetry(url: string, retries = 3): Promise<Response> {
   throw lastError;
 }
 
-export async function fetchParties(legislature = 57): Promise<Party[]> {
-  const response = await fetchWithRetry(
-    `https://dadosabertos.camara.leg.br/api/v2/partidos?idLegislatura=${legislature}&itens=100`
-  );
+export async function fetchParties(legislature = 57, options?: { signal?: AbortSignal }): Promise<Party[]> {
+  const url = legislature === 57
+    ? `/api/api/v2/partidos?ordem=ASC&ordenarPor=sigla&itens=100`
+    : `/api/api/v2/partidos?idLegislatura=${legislature}&itens=100`;
+
+  const response = await fetchWithRetry(url, 3, options);
   const data = await response.json();
 
   if (!data.dados) return [];
 
-  const parties = await Promise.all(
-    data.dados.map(async (party: ApiParty) => {
-      try {
-        const detailResponse = await fetchWithRetry(
-          `https://dadosabertos.camara.leg.br/api/v2/partidos/${party.id}`
-        );
-        const detailData = await detailResponse.json();
-        const partyDetail: ApiPartyDetail = detailData.dados;
-
-        return {
-          id: String(party.id),
-          abbr: party.sigla,
-          name: party.nome,
-          spent: 0,
-          variation: 0,
-          members: 0,
-          logo: partyDetail?.urlLogo || undefined,
-        };
-      } catch {
-        return {
-          id: String(party.id),
-          abbr: party.sigla,
-          name: party.nome,
-          spent: 0,
-          variation: 0,
-          members: 0,
-        };
-      }
-    })
-  );
-
-  return parties;
+  return data.dados.map((party: ApiParty) => ({
+    id: String(party.id),
+    abbr: party.sigla,
+    name: party.nome,
+    spent: 0,
+    variation: 0,
+    members: 0,
+    // Logo remains undefined as fetching it for each party is too many requests
+    // and causes timeouts or rate limiting issues.
+    logo: undefined,
+  }));
 }
 
 export interface PoliticianMember {
@@ -114,19 +102,10 @@ export interface Legislature {
 
 export async function fetchLegislatures(): Promise<Legislature[]> {
   try {
-    const response = await fetch(
-      'https://dadosabertos.camara.leg.br/api/v2/legislaturas?itens=100',
-      {
-        mode: 'cors',
-        headers: {
-          'Accept': 'application/json'
-        }
-      }
+    const response = await fetchWithRetry(
+      '/api/api/v2/legislaturas?itens=100',
+      3
     );
-    
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
-    }
     
     const data = await response.json();
     
@@ -143,97 +122,81 @@ export async function fetchLegislatures(): Promise<Legislature[]> {
   }
 }
 
-export async function fetchSenators(legislature = 57): Promise<Deputy[]> {
-  const url = legislature === 57
-    ? 'https://legis.senado.leg.br/dadosabertos/senador/lista/atual'
-    : `https://legis.senado.leg.br/dadosabertos/senador/lista/legislatura/${legislature}`;
+export async function fetchDeputiesByName(
+  name: string,
+  options?: { signal?: AbortSignal }
+): Promise<Deputy[]> {
   try {
-    const response = await fetchWithRetry(url);
-    const data = await response.json();
+    if (!name || name.length < 2) return [];
 
-    const root =
-      data.ListaParlamentarEmExercicio?.Parlamentares?.Parlamentar ??
-      data.ListaParlamentarLegislatura?.Parlamentares?.Parlamentar;
+    console.log('Buscando deputado:', name);
 
-    if (!root) return [];
+    const response = await fetch('/dados/deputados.csv', options);
+    const conteudo = await response.text();
 
-    const list: any[] = Array.isArray(root) ? root : [root];
-    const seen = new Set<string>();
+    const linhas = conteudo
+      .split('\n')
+      .map(l => l.trim())
+      .filter(l => l !== '');
 
-    return list
-      .map((p: any) => {
-        const info = p.IdentificacaoParlamentar;
-        return {
-          id: String(info.CodigoParlamentar),
-          name: info.NomeParlamentar,
-          photo: info.UrlFotoParlamentar || '',
-          state: info.UfParlamentar,
-          party: info.SiglaPartidoParlamentar,
-          role: 'Senador',
-        } as Deputy;
-      })
-      .filter((s) => {
-        if (seen.has(s.id)) return false;
-        seen.add(s.id);
-        return true;
+    if (linhas.length <= 1) return [];
+
+    const cabecalho = linhas[0]
+      .replace(/"/g, '')
+      .split(';');
+
+    const dados = linhas.slice(1).map(linha => {
+      const valores = linha
+        .replace(/"/g, '')
+        .split(';');
+
+      const obj: any = {};
+
+      cabecalho.forEach((col, i) => {
+        obj[col] = valores[i] ?? '';
       });
-  } catch (error) {
-    console.error('Error fetching senators:', error);
-    return [];
-  }
-}
 
-export async function fetchDeputiesByName(name: string): Promise<Deputy[]> {
-  if (!name || name.length < 2) return [];
-  
-  try {
-    const response = await fetch(
-      `https://dadosabertos.camara.leg.br/api/v2/deputados?nome=${encodeURIComponent(name)}&itens=10`,
-      {
-        mode: 'cors',
-        headers: {
-          'Accept': 'application/json'
-        }
-      }
+      return obj;
+    });
+
+    console.log('[fetchDeputiesByName] Total de registros processados:', dados.length);
+
+    const filtrado = dados.filter(dep =>
+      dep.nome?.toLowerCase().includes(name.toLowerCase())
     );
-    
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
-    }
-    
-    const data = await response.json();
-    
-    if (!data.dados) return [];
-    
-    return data.dados.map((d: any) => ({
-      id: String(d.id),
-      name: d.nome,
-      photo: d.urlFoto || '',
-      state: d.siglaUf,
-      role: 'Deputado Federal',
-      party: d.siglaPartido,
-    }));
+
+    return filtrado.map(d => {
+      const uri = d.uri || '';
+      const idFromUri = uri.split('/').pop() || '';
+
+      return {
+        id: idFromUri || d.id || d.idDeputado || '',
+        name: d.nome || d.nomeDeputado || '',
+        photo: d.urlFoto || d.foto || '',
+        state: d.siglaUf || d.uf || '',
+        role: 'Deputado Federal',
+        party: d.siglaPartido || d.partido || '',
+      };
+    });
+
   } catch (error) {
-    console.error('Error fetching deputados:', error);
+    if ((error as Error).name !== 'AbortError') {
+      console.error('Error fetching deputados by name:', error);
+    }
     return [];
   }
 }
 
-export async function fetchAllDeputies(legislature?: number): Promise<Deputy[]> {
+export async function fetchAllDeputies(legislature?: number, options?: { signal?: AbortSignal }): Promise<Deputy[]> {
   const legislatureParam = legislature ? `idLegislatura=${legislature}` : 'idLegislatura=57';
   const allDeputies: Deputy[] = [];
   const seen = new Set<string>();
   let nextUrl: string | null =
-    `https://dadosabertos.camara.leg.br/api/v2/deputados?${legislatureParam}&itens=100`;
+    `/api/api/v2/deputados?${legislatureParam}&itens=100&ordem=ASC&ordenarPor=nome`;
 
   while (nextUrl) {
     try {
-      const response: Response = await fetch(nextUrl, {
-        mode: 'cors',
-        headers: { 'Accept': 'application/json', 'Connection': 'keep-alive' },
-      });
-
-      if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+      const response: Response = await fetchWithRetry(nextUrl, 3, options);
 
       const data: { dados: any[]; links?: { rel: string; href: string }[] } = await response.json();
 
@@ -257,7 +220,11 @@ export async function fetchAllDeputies(legislature?: number): Promise<Deputy[]> 
       const nextLink: { rel: string; href: string } | undefined =
         data.links?.find((l) => l.rel === 'next');
       nextUrl = nextLink?.href ?? null;
+      
+      // Prevent infinite loops or excessive paging if API misbehaves
+      if (allDeputies.length > 2000) break;
     } catch (error) {
+      if ((error as Error).name === 'AbortError') throw error;
       console.error('Error fetching deputies page:', error);
       break;
     }
@@ -266,22 +233,14 @@ export async function fetchAllDeputies(legislature?: number): Promise<Deputy[]> 
   return allDeputies;
 }
 
-export async function fetchPartyMembers(partyAbbr: string): Promise<PoliticianMember[]> {
+export async function fetchPartyMembers(partyAbbr: string, legislature = 57, options?: { signal?: AbortSignal }): Promise<PoliticianMember[]> {
   try {
-    const response = await fetch(
-      `https://dadosabertos.camara.leg.br/api/v2/deputados?idLegislatura=57&siglaPartido=${partyAbbr}&itens=100`,
-      { 
-        mode: 'cors',
-        headers: {
-          'Accept': 'application/json'
-        }
-      }
+    const response = await fetchWithRetry(
+      `/api/api/v2/deputados?idLegislatura=${legislature}&siglaPartido=${partyAbbr}&itens=100`,
+      3,
+      options
     );
-    
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
-    }
-    
+
     const data = await response.json();
     
     if (!data.dados) return [];
@@ -295,7 +254,9 @@ export async function fetchPartyMembers(partyAbbr: string): Promise<PoliticianMe
       email: d.email,
     }));
   } catch (error) {
-    console.error('Error fetching party members:', error);
+    if ((error as Error).name !== 'AbortError') {
+      console.error('Error fetching party members:', error);
+    }
     return [];
   }
 }
@@ -355,7 +316,7 @@ export async function fetchDeputyById(id: string): Promise<DeputyDetail | null> 
   // Tenta o endpoint detalhado primeiro
   try {
     const response = await fetchWithRetry(
-      `https://dadosabertos.camara.leg.br/api/v2/deputados/${id}`
+      `/api/api/v2/deputados/${id}`
     );
     const data = await response.json();
     if (data.dados) return mapDeputyDetail(data.dados);
@@ -366,7 +327,7 @@ export async function fetchDeputyById(id: string): Promise<DeputyDetail | null> 
   // Fallback: endpoint de listagem com filtro de ID (sempre retorna CORS corretos)
   try {
     const response = await fetchWithRetry(
-      `https://dadosabertos.camara.leg.br/api/v2/deputados?id=${id}&itens=1`
+      `/api/api/v2/deputados?id=${id}&itens=1`
     );
     const data = await response.json();
     if (data.dados?.length) return mapDeputyDetail(data.dados[0]);
@@ -375,6 +336,19 @@ export async function fetchDeputyById(id: string): Promise<DeputyDetail | null> 
   }
 
   return null;
+}
+
+export async function fetchDeputyHistory(id: string): Promise<any[]> {
+  try {
+    const response = await fetchWithRetry(
+      `/api/api/v2/deputados/${id}/historico`
+    );
+    const data = await response.json();
+    return data.dados || [];
+  } catch (error) {
+    console.error('Error fetching deputy history:', error);
+    return [];
+  }
 }
 
 export interface DeputyExpense {
@@ -387,9 +361,69 @@ export interface DeputyExpense {
   documentUrl?: string;
 }
 
+interface HistoricoItem {
+  idLegislatura: number;
+}
+
+interface Legislatura {
+  idLegislatura: number;
+  dataInicio: string;
+  dataFim: string;
+}
+
+export async function fetchDeputyYears(
+  deputyId: number
+): Promise<number[]> {
+  try {
+    const response = await fetch(
+      `/api/api/v2/deputados/${deputyId}/historico`
+    );
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    const historico: { dados: HistoricoItem[] } =
+      await response.json();
+
+    if (!historico.dados) return [];
+
+    const legislaturaIds = [
+      ...new Set(historico.dados.map(item => item.idLegislatura))
+    ];
+
+    const legislaturasResponse = await fetch(
+      "/dados/legislaturas.json"
+    );
+
+    const legislaturasData: { dados: Legislatura[] } =
+      await legislaturasResponse.json();
+
+    const legislaturasDoDeputado = legislaturasData.dados.filter(
+      leg => legislaturaIds.includes(leg.idLegislatura)
+    );
+
+    const allYears = legislaturasDoDeputado.flatMap(leg => {
+      const startYear = new Date(leg.dataInicio).getFullYear();
+      const endYear = new Date(leg.dataFim).getFullYear();
+
+      return Array.from(
+        { length: endYear - startYear + 1 },
+        (_, i) => startYear + i
+      );
+    });
+
+    return [...new Set(allYears)].sort((a, b) => a - b);
+
+  } catch (error) {
+    console.error("Erro ao buscar anos do deputado:", error);
+    return [];
+  }
+}
+
 export async function fetchDeputyExpenses(deputyId: string, year?: number, month?: number): Promise<DeputyExpense[]> {
   try {
-    let url = `https://dadosabertos.camara.leg.br/api/v2/deputados/${deputyId}/despesas?itens=100&ordem=desc&ordenarPor=dataDocumento`;
+    let url = `/api/api/v2/deputados/${deputyId}/despesas?itens=100&ordem=desc&ordenarPor=dataDocumento`;
     if (year) url += `&ano=${year}`;
     if (month) url += `&mes=${month}`;
 

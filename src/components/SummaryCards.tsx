@@ -2,7 +2,7 @@ import { Building2, Calendar } from 'lucide-react';
 import { Card } from './ui/Card';
 import styles from '../styles/SummaryCards.module.css';
 
-type FilterType = 'partidos' | 'deputados' | 'senadores';
+type FilterType = 'partidos' | 'deputados';
 
 interface SummaryCardsProps {
   filterType?: FilterType;
@@ -14,13 +14,11 @@ interface SummaryCardsProps {
 const LABEL: Record<FilterType, string> = {
   partidos: 'Partidos Políticos',
   deputados: 'Deputados Analisados',
-  senadores: 'Senadores Analisados',
 };
 
 const SUBTEXT: Record<FilterType, string> = {
   partidos: 'Total de partidos cadastrados',
   deputados: 'Deputados na legislatura selecionada',
-  senadores: 'Senadores na legislatura selecionada',
 };
 
 export function SummaryCards({
@@ -58,8 +56,6 @@ export function SummaryCards({
             <p className={styles.subtext}>
               {filterType === 'deputados'
                 ? 'Dados dos deputados selecionados'
-                : filterType === 'senadores'
-                ? 'Dados dos senadores selecionados'
                 : 'Dados dos deputados atuais'}
             </p>
           </div>
